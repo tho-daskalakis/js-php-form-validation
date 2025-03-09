@@ -1,0 +1,10 @@
+services:
+  php:
+    image: php:8.2-cli
+    container_name: php_server
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "8000:8000"
+    entrypoint: [ "php", "-S", "0.0.0.0:8000", "-t", "/var/www/html" ]

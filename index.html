@@ -1,15 +1,72 @@
 <!DOCTYPE html>
 <body>
-	<form>
+	<form method='post' onsubmit='validateForm(event)'>
 		<label for='firstName'>First name:</label>
 		<input type='text' id='firstName' name='firstName'>
+		<p id='firstNameValidationMessage'></p>
 
 		<label for='lastName'>Last name:</label>
 		<input type='text' id='lastName' name='lastName'>
+		<p id='lastNameValidationMessage'></p>
 
 		<label for='birthday'>DOB:</label>
 		<input type='date' id='birthday' name='birthday'>
+		<p id='birthdayValidationMessage'></p>
+
+		<button type='submit'>Submit</button>
 	</form>
 
-	<script></script>
+	<script>
+		const nameRegex = /[A-Za-z]+/; // Names should not be empty and contain only letters
+		const dateRegex = /\d{4}-\d{2}-\d{2}/; // Date should not be empty and be in a date format
+
+		/**
+		 * The client side validation of the form. Only makes broad checks, while the server
+		 * performs a strict validation.
+		 *
+		 * @param event - The event that submitted the form.
+		 */
+		function validateForm(event) {
+			event.preventDefault();
+
+			// Get inputs & DOM elements
+			const firstName = document.getElementById('firstName').value.trim();
+			const firstNameValidationMessageElement = document.getElementById('firstNameValidationMessage');
+
+			const lastName = document.getElementById('lastName').value.trim();
+			const lastNameValidationMessageElement = document.getElementById('lastNameValidationMessage');
+
+			const birthday = document.getElementById('birthday').value;
+			const birthdayValidationMessageElement = document.getElementById('birthdayValidationMessage');
+
+			// Validate input
+		  	firstNameValidationMessageElement.innerText = getFirstNameValidationMessage(firstName);
+			lastNameValidationMessageElement.innerText = getLastNameValidationMessage(lastName);
+			birthdayValidationMessageElement.innerText = getBirthdayValidationMessage(birthday);
+		}
+
+		function getFirstNameValidationMessage(firstName) {
+			if (typeof firstName !== 'string') return 'The first name must be a string.'
+		  	if (firstName === '') return 'The first name must not be empty.'
+			if (!nameRegex.test(firstName)) return 'The first name must contain only letters.'
+
+		  	return ''; // Input is valid
+		}
+
+		function getLastNameValidationMessage(lastName) {
+			if (typeof lastName !== 'string') return 'The last name must be a string.'
+			if (lastName === '') return 'The last name must not be empty.'
+			if (!nameRegex.test(lastName)) return 'The last name must contain only letters.'
+
+			return ''; // Input is valid
+		}
+
+		function getBirthdayValidationMessage(birthday) {
+			if (typeof birthday !== 'string') return 'The birthday must be a string.'
+			if (birthday === '') return 'The birthday must not be empty.'
+			if (!dateRegex.test(birthday)) return 'The birthday must be in the YYYY-MM-DD format.'
+
+			return ''; // Input is valid
+		}
+	</script>
 </body>

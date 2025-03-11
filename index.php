@@ -2,23 +2,24 @@
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // Get the form values.
-    $firstName = processNameData($_POST["firstName"]);
-    // ...and the rest fields
+    $firstName = processName($_POST["firstName"]);
+    $lastName = processName($_POST["lastName"]);
+    $birthday = processBirthdate($_POST["birthday"]);
 
     // Validate inputs.
 
     // Return appropriate response.
 }
 
-function processNameData($data) {
+function processName($name) {
     // Trim, format etc.
 
-    return $data;
+    return $name;
 }
 
-function processBirthdate($data)
+function processBirthdate($date)
 {
     // ...process/format
 
-    return $data;
+    return $date;
 }

@@ -1,72 +1,134 @@
 <!DOCTYPE html>
 <body>
-	<form method='post' onsubmit='validateForm(event)'>
-		<label for='firstName'>First name:</label>
-		<input type='text' id='firstName' name='firstName'>
-		<p id='firstNameValidationMessage'></p>
+<form method='post' onsubmit='validateForm(event)'>
+	<label for='firstName'>First name:</label>
+	<input type='text' id='firstName' name='firstName'>
+	<p id='firstNameValidationMessage' class="error"></p>
 
-		<label for='lastName'>Last name:</label>
-		<input type='text' id='lastName' name='lastName'>
-		<p id='lastNameValidationMessage'></p>
+	<label for='lastName'>Last name:</label>
+	<input type='text' id='lastName' name='lastName'>
+	<p id='lastNameValidationMessage' class="error"></p>
 
-		<label for='birthday'>DOB:</label>
-		<input type='date' id='birthday' name='birthday'>
-		<p id='birthdayValidationMessage'></p>
+	<label for='birthday'>DOB:</label>
+	<input type='date' id='birthday' name='birthday'>
+	<p id='birthdayValidationMessage' class="error"></p>
 
-		<button type='submit'>Submit</button>
-	</form>
+	<button type='submit'>Submit</button>
+</form>
 
-	<script>
-		const nameRegex = /[A-Za-z]+/; // Names should not be empty and contain only letters
-		const dateRegex = /\d{4}-\d{2}-\d{2}/; // Date should not be empty and be in a date format
+<p id="serverResponse"></p> <!-- To show success or error messages from the server -->
 
-		/**
-		 * The client side validation of the form. Only makes broad checks, while the server
-		 * performs a strict validation.
-		 *
-		 * @param event - The event that submitted the form.
-		 */
-		function validateForm(event) {
-			event.preventDefault();
+<script>
+	const nameRegex = /^[A-Za-z'-]+$/; // Allows letters, hyphens, and apostrophes
+	const dateRegex = /^\d{4}-\d{2}-\d{2}$/; // YYYY-MM-DD format
 
-			// Get inputs & DOM elements
-			const firstName = document.getElementById('firstName').value.trim();
-			const firstNameValidationMessageElement = document.getElementById('firstNameValidationMessage');
+	async function validateForm(event) {
+		event.preventDefault();
 
-			const lastName = document.getElementById('lastName').value.trim();
-			const lastNameValidationMessageElement = document.getElementById('lastNameValidationMessage');
+		// Get inputs & validation message elements
+		const firstName = document.getElementById('firstName').value.trim();
+		const firstNameValidationMessageElement = document.getElementById('firstNameValidationMessage');
 
-			const birthday = document.getElementById('birthday').value;
-			const birthdayValidationMessageElement = document.getElementById('birthdayValidationMessage');
+		const lastName = document.getElementById('lastName').value.trim();
+		const lastNameValidationMessageElement = document.getElementById('lastNameValidationMessage');
 
-			// Validate input
-		  	firstNameValidationMessageElement.innerText = getFirstNameValidationMessage(firstName);
-			lastNameValidationMessageElement.innerText = getLastNameValidationMessage(lastName);
-			birthdayValidationMessageElement.innerText = getBirthdayValidationMessage(birthday);
+		const birthday = document.getElementById('birthday').value;
+		const birthdayValidationMessageElement = document.getElementById('birthdayValidationMessage');
+
+		const serverResponseMessage = document.getElementById("serverResponse");
+
+		// Reset error messages
+		firstNameValidationMessageElement.innerText = "";
+		lastNameValidationMessageElement.innerText = "";
+		birthdayValidationMessageElement.innerText = "";
+		serverResponseMessage.innerText = "";
+
+		// Run client-side validation
+		let hasErrors = false;
+		const firstNameError = getFirstNameValidationMessage(firstName);
+		const lastNameError = getLastNameValidationMessage(lastName);
+		const birthdayError = getBirthdayValidationMessage(birthday);
+
+		if (firstNameError) {
+			firstNameValidationMessageElement.innerText = firstNameError;
+			hasErrors = true;
+		}
+		if (lastNameError) {
+			lastNameValidationMessageElement.innerText = lastNameError;
+			hasErrors = true;
+		}
+		if (birthdayError) {
+			birthdayValidationMessageElement.innerText = birthdayError;
+			hasErrors = true;
 		}
 
-		function getFirstNameValidationMessage(firstName) {
-			if (typeof firstName !== 'string') return 'The first name must be a string.'
-		  	if (firstName === '') return 'The first name must not be empty.'
-			if (!nameRegex.test(firstName)) return 'The first name must contain only letters.'
+		// Stop form submission if there are client-side errors
+		if (hasErrors) return;
 
-		  	return ''; // Input is valid
+		// Prepare data for sending
+		const formData = new FormData();
+		formData.append("firstName", firstName);
+		formData.append("lastName", lastName);
+		formData.append("birthday", birthday);
+
+		try {
+			// Send form data to the PHP server
+			const response = await fetch("http://localhost:8000/index.php", {
+				method: "POST",
+				body: formData,
+			  	headers: {
+					"Accept": "application/json"
+				},
+			  	mode: "cors"
+			});
+
+			const result = await response.json();
+
+			if (result.success) {
+				serverResponseMessage.innerText = result.message;
+				serverResponseMessage.style.color = "green";
+			} else {
+				// Display server-side validation errors
+				if (result.errors.firstName.length > 0) {
+					firstNameValidationMessageElement.innerText = result.errors.firstName.join(", ");
+				}
+				if (result.errors.lastName.length > 0) {
+					lastNameValidationMessageElement.innerText = result.errors.lastName.join(", ");
+				}
+				if (result.errors.birthday.length > 0) {
+					birthdayValidationMessageElement.innerText = result.errors.birthday.join(", ");
+				}
+			}
+		} catch (error) {
+			serverResponseMessage.innerText = "Error contacting the server.";
+			serverResponseMessage.style.color = "red";
 		}
+	}
 
-		function getLastNameValidationMessage(lastName) {
-			if (typeof lastName !== 'string') return 'The last name must be a string.'
-			if (lastName === '') return 'The last name must not be empty.'
-			if (!nameRegex.test(lastName)) return 'The last name must contain only letters.'
+	// Client-side validation functions
+	function getFirstNameValidationMessage(firstName) {
+		if (firstName === "") return "The first name must not be empty.";
+		if (!nameRegex.test(firstName)) return "The first name must contain only letters, hyphens, or apostrophes.";
+		return "";
+	}
 
-			return ''; // Input is valid
-		}
+	function getLastNameValidationMessage(lastName) {
+		if (lastName === "") return "The last name must not be empty.";
+		if (!nameRegex.test(lastName)) return "The last name must contain only letters, hyphens, or apostrophes.";
+		return "";
+	}
 
-		function getBirthdayValidationMessage(birthday) {
-			if (typeof birthday !== 'string') return 'The birthday must be a string.'
-			if (birthday === '') return 'The birthday must not be empty.'
-			if (!dateRegex.test(birthday)) return 'The birthday must be in the YYYY-MM-DD format.'
+	function getBirthdayValidationMessage(birthday) {
+		if (birthday === "") return "The birthday must not be empty.";
+		if (!dateRegex.test(birthday)) return "The birthday must be in the YYYY-MM-DD format.";
+		return "";
+	}
+</script>
 
-			return ''; // Input is valid
-		}
-	</script>
+<style>
+    .error {
+        color: red;
+        font-size: 14px;
+    }
+</style>
 </body>

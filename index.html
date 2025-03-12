@@ -85,8 +85,11 @@
 			const result = await response.json();
 
 			if (result.success) {
-				serverResponseMessage.innerText = result.message;
-				serverResponseMessage.style.color = "green";
+					sessionStorage.setItem("firstName", result.data.firstName);
+					sessionStorage.setItem("lastName", result.data.lastName);
+					sessionStorage.setItem("birthday", result.data.birthday);
+
+					window.location.href = "success.html";
 			} else {
 				// Display server-side validation errors
 				if (result.errors.firstName.length > 0) {

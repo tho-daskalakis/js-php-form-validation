@@ -18,7 +18,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if ($hasErrors) {
         echo json_encode(["success" => false, "errors" => $errors]);
     } else {
-        echo json_encode(["success" => true, "message" => "Form submitted successfully!"]);
+        echo json_encode([
+            "success" => true,
+            "message" => "Form submitted successfully!",
+            "data" => [
+                "firstName" => $firstName,
+                "lastName" => $lastName,
+                "birthday" => $birthday
+            ]
+        ]);
     }
     exit;
 }
